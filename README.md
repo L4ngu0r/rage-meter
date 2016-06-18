@@ -28,3 +28,7 @@ node index.js
 - use database
 - admin section security
 - configuration (rage limits, cooldown, number of votes etc)
+
+### License
+
+MIT
