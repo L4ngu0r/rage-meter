@@ -1,0 +1,125 @@
+#%RAML 0.8
+
+title: Rage Meter
+version: 1
+baseUri: /
+mediaType: application/json
+
+/rage:
+  get:
+    description: Retrieve all persons with their rage level
+    responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  [
+                    {
+                      "name": "toto",
+                      "id": 1,
+                      "nbVote":0,
+                      "rageLevel":4
+                    },
+                    {
+                      "name": "tata",
+                      "id": 2,
+                      "nbVote":1,
+                      "rageLevel":0
+                    },
+                  ]
+  /{id}:
+    get:
+      description: Get person's informations
+      responses:
+        200:
+          body:
+            application/json:
+              schema: |
+                {
+                  "$schema": "http://json-schema.org/schema",
+                  "type": "object",
+                  "description": "A person",
+                  "properties": {
+                    "id": { "type": "number" },
+                    "name": { "type": "string" },
+                    "nbVote": { "type": "number" },
+                    "rageLevel": { "type": "number" }
+                  },
+                  "required": [ "id" ]
+                }
+              example: |
+                {
+                  "id": "1",
+                  "name": "Toto",
+                  "nbVote": "0",
+                  "rageLevel": 0
+                }
+        404:
+          body:
+            application/json:
+              example: |
+                {}
+    post:
+      description: Vote to increase a person's rage level
+      body:
+        application/x-www-form-urlencoded:
+          formParameters:
+            id:
+              description: Person's id
+              type: number
+              required: true
+      responses:
+        200:
+          body:
+            application/json:
+              schema: |
+                  {
+                    "$schema": "http://json-schema.org/schema",
+                    "type": "object",
+                    "properties":{
+                      "Vote":{ "type":"string"}
+                    }
+                  }
+              example: |
+                  {
+                    "Vote": "added"
+                  }
+        400:
+          body:
+            application/json:
+              example: |
+                {
+                  "Error": "id 5 not matching anyone"
+                }
+  /adm:
+    /add:
+      post:
+        description: Add a person in the group
+        body:
+           application/x-www-form-urlencoded:
+             formParameters:
+               name:
+                 description: Person's name
+                 type: string
+                 required: true
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "Added" : "Person with name toto"
+                  }
+          400:
+            body:
+              application/json:
+                example: |
+                  {
+                    "Error" : "Please provide a name"
+                  }
+    /update/{id}:
+      put:
+        description: Update person's informations
+    /delete/{id}:
+      delete:
+        description: Delete a person from the group

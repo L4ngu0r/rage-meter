@@ -1,0 +1,15 @@
+{
+  "name": "rage-api",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "~4.13.4",
+    "body-parser": "~1.15.1"
+  },
+  "author": "L4ngu0r",
+  "license": "MIT",
+  "repository" :
+  {
+    "type" : "git",
+    "url" : "https://github.com/L4ngu0r/rage-meter.git"
+  }
+}
