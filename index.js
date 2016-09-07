@@ -17,30 +17,6 @@ const MAX_RAGE = 10;
 const MIN_RAGE = 0;
 
 /**
- * Define a person
- * @param id number : should be automatic
- * @param name string
- * @constructor
- */
-function Person(id, name) {
-    this.id = id;
-    this.name = name;
-    let nbVote = 0;
-    let rageLevel = 0;
-
-    Object.defineProperty(this, "rageLevel", {
-        get: function () {
-            return rageLevel;
-        },
-        set: function (rage) {
-            if (rageLevel >= MIN_RAGE && rageLevel <= MAX_RAGE) {
-                rageLevel = rage;
-            }
-        }
-    });
-}
-
-/**
  *
  * @param personId number
  * @returns {*} person
@@ -71,7 +47,25 @@ var persons = [
 ];
 
 persons.map((p) => {
-    return Object.assign(new Person(), p);
+    let rageLevel = 0;
+    Object.defineProperties(p, {
+        "rageLevel": {
+            get: function () {
+                console.log('get');
+                return rageLevel;
+            },
+            set: function (rage) {
+                if (rageLevel >= MIN_RAGE && rageLevel <= MAX_RAGE) {
+                    rageLevel = rage;
+                }
+            }
+        },
+        "nbVote": {
+            value: 0,
+            writable: true
+        }
+    });
+    return p;
 });
 
 var rageMeter = [],
@@ -105,45 +99,48 @@ function auth(req, res, next) {
         ip = ipSplit[ipSplit.length - 1];
     }
 
-    // check if ip already requested something
-    let isPresent = Object.keys(mapIps).find((key) => {
-        return key === ip;
-    });
-
-    let now = new Date().getTime();
-    let accessAdmin = req.path.indexOf("adm") !== -1;
-    if(accessAdmin){
-        let ipTrying = isPresent || ip;
-        switch (ipTrying){
-            case "localhost":
-            case "::1":
-            case "127.0.0.1":
-                next();
-                break;
-            default:
-                res.status(401);
-                res.json({'Error' : 'Unauthorized request!'});
-        }
-    }else if (!isPresent) {
-        // first time call
-        mapIps[ip] = {
-            hash: crypto.randomBytes(20).toString("hex"),
-            timestamp: now
-        };
+    if(reqMethod !== 'POST'){
         next();
-    } else if (mapIps[ip].timestamp + 5 * 60 * 1000 > now && matches && reqMethod === 'POST') {
-        // we block vote on POST method with regex matches id and for 5 minutes
-        // showing the remaining time in the response
-        let remainingTime = ((mapIps[ip].timestamp + 5 * 60 * 1000) - now) / 60;
-        res.status(401);
-        res.json({
-            'Warning': 'Too early sorry :)',
-            'Time remaining': Math.floor(remainingTime) + 's'
+    }else {
+        // check if ip already requested something
+        let isPresent = Object.keys(mapIps).find((key) => {
+            return key === ip;
         });
-    } else {
-        // can get data otherwise, and update timestamp
-        mapIps[isPresent].timestamp = now;
-        next();
+        let now = new Date().getTime();
+        let accessAdmin = req.path.indexOf("adm") !== -1;
+        if (accessAdmin) {
+            let ipTrying = isPresent || ip;
+            switch (ipTrying) {
+                case "localhost":
+                case "::1":
+                case "127.0.0.1":
+                    next();
+                    break;
+                default:
+                    res.status(401);
+                    res.json({'Error': 'Unauthorized request!'});
+            }
+        } else if (!isPresent) {
+            // first time call
+            mapIps[ip] = {
+                hash: crypto.randomBytes(20).toString("hex"),
+                timestamp: now
+            };
+            next();
+        } else if (mapIps[ip].timestamp + 5 * 60 * 1000 > now && matches && reqMethod === 'POST') {
+            // we block vote on POST method with regex matches id and for 5 minutes
+            // showing the remaining time in the response
+            let remainingTime = ((mapIps[ip].timestamp + 5 * 60 * 1000) - now) / 60;
+            res.status(401);
+            res.json({
+                'Warning': 'Too early sorry :)',
+                'Time remaining': Math.floor(remainingTime) + 's'
+            });
+        } else {
+            // can get data otherwise, and update timestamp
+            mapIps[isPresent].timestamp = now;
+            next();
+        }
     }
 }
 
@@ -241,3 +238,5 @@ router.delete('/adm/delete/:id', (req, res) => {
 app.use("/rage", router);
 app.listen(8005);
 console.log("RAGE API started on port 8005");
+
+module.exports = app;
