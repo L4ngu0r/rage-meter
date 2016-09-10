@@ -1,5 +1,7 @@
 # Rage Meter API
 
+[![CircleCI](https://circleci.com/gh/L4ngu0r/rage-meter/tree/master.svg?style=svg)](https://circleci.com/gh/L4ngu0r/rage-meter/tree/master)
+
 ### Description
 
 Used to troll in our team, decide to make a little API to integrate in our dev tools!
