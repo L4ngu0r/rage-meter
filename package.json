@@ -14,9 +14,11 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
-    "mocha": "^3.0.2"
+    "mocha": "^3.0.2",
+    "raml2html": "^3.0.0"
   },
   "scripts": {
-    "test" : "mocha"
+    "test" : "mocha",
+    "gen-doc" : "raml2html api.raml > api.html"
   }
 }
