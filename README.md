@@ -23,6 +23,12 @@ npm install
 node index.js
 ```
 
+##### Generate documentation
+
+```
+npm run gen-doc
+```
+
 ### TODO
 
 - reset on daily basis
