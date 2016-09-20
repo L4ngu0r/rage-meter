@@ -2,8 +2,10 @@ var express = require("express"),
     bodyParser = require("body-parser"),
     app = express(),
     router = express.Router(),
+    dotenv = require('dotenv'),
     crypto = require("crypto");
 
+dotenv.load();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
@@ -234,6 +236,31 @@ router.delete('/adm/delete/:id', (req, res) => {
     }
 });
 
+
+/**********************************
+ *
+ *  Error handling - only for production
+ *
+ **********************************/
+
+if(process.env.NODE_ENV === 'production') {
+    app.get('*', function (req, res, next) {
+        const err = new Error();
+        err.status = 404;
+        next(err);
+    });
+
+    app.use((err, req, res, next) => {
+        console.log(err);
+        res.status(500).json({'Error': 'something went wrong!'});
+    });
+}
+
+/**********************************
+ *
+ *  Launch
+ *
+ **********************************/
 
 app.use("/rage", router);
 app.listen(8005);
