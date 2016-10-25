@@ -1,11 +1,12 @@
-var express = require("express"),
-    bodyParser = require("body-parser"),
-    app = express(),
-    router = express.Router(),
+var restify = require("restify"),
+    server = restify.createServer({
+        name: 'rage-meter',
+        version: '1.0.0'
+    }),
     crypto = require("crypto");
 
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json());
+server.use(restify.bodyParser());
+server.use(restify.CORS());
 
 /**********************************
  *
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 
 const MAX_RAGE = 10;
 const MIN_RAGE = 0;
+const BASE_ROUTE = '/rage';
 
 /**
  *
@@ -51,7 +53,6 @@ persons.map((p) => {
     Object.defineProperties(p, {
         "rageLevel": {
             get: function () {
-                console.log('get');
                 return rageLevel;
             },
             set: function (rage) {
@@ -68,7 +69,7 @@ persons.map((p) => {
     return p;
 });
 
-var rageMeter = [],
+var rageMeter = [].concat(persons),
     mapIps = {};
 
 /**********************************
@@ -80,8 +81,9 @@ var rageMeter = [],
 function auth(req, res, next) {
     // regex limited to 255
     let idsReg = /\/rage\/([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])/,
-        reqPath = req.path,
+        reqPath = req.url,
         reqMethod = req.method,
+        reqIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress,
         matches;
     // use of regex to identify if we try to get a person
     if ((matches = idsReg.exec(reqPath)) !== null) {
@@ -89,13 +91,12 @@ function auth(req, res, next) {
             idsReg.lastIndex++;
         }
     }
-
     let ip = null;
-    if (req.ip.length < 16) {
+    if (reqIp.length < 16) {
         // fallback for ipv6 localhost (::1)
         ip = req.headers.host.split(':')[0];
     } else {
-        let ipSplit = req.ip.split(':');
+        let ipSplit = reqIp.split(':');
         ip = ipSplit[ipSplit.length - 1];
     }
 
@@ -107,7 +108,7 @@ function auth(req, res, next) {
             return key === ip;
         });
         let now = new Date().getTime();
-        let accessAdmin = req.path.indexOf("adm") !== -1;
+        let accessAdmin = reqPath.indexOf("adm") !== -1;
         if (accessAdmin) {
             let ipTrying = isPresent || ip;
             switch (ipTrying) {
@@ -144,7 +145,7 @@ function auth(req, res, next) {
     }
 }
 
-app.use(auth);
+server.use(auth);
 
 /**********************************
  *
@@ -152,12 +153,12 @@ app.use(auth);
  *
  **********************************/
 
-router.get('/', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
+server.get(BASE_ROUTE, (req, res) => {
+    res.header('Content-Type', 'application/json');
     res.json(rageMeter);
 });
 
-router.get('/:id', (req, res) => {
+server.get(`${BASE_ROUTE}/:id`, (req, res) => {
     let person = findPerson(parseInt(req.params.id));
 
     if (person) {
@@ -169,7 +170,7 @@ router.get('/:id', (req, res) => {
 });
 
 
-router.post('/:id', (req, res) => {
+server.post(`${BASE_ROUTE}/:id`, (req, res) => {
     let reqId = parseInt(req.params.id);
     let person = findPerson(reqId);
 
@@ -199,7 +200,7 @@ router.post('/:id', (req, res) => {
  *
  **********************************/
 
-router.post('/adm/add', (req, res) => {
+server.post('/adm/add', (req, res) => {
     // add a person to table
     let name = req.params.name;
     if(name) {
@@ -211,7 +212,7 @@ router.post('/adm/add', (req, res) => {
     }
 });
 
-router.put('/adm/update/:id', (req, res) => {
+server.put('/adm/update/:id', (req, res) => {
     // update a person
     let person = findPerson(req.params.id);
     if(person){
@@ -222,7 +223,7 @@ router.put('/adm/update/:id', (req, res) => {
     }
 });
 
-router.delete('/adm/delete/:id', (req, res) => {
+server.del('/adm/delete/:id', (req, res) => {
     // delete a person
     let personIndex = findPersonIndex(req.params.id);
     if(personIndex){
@@ -234,9 +235,7 @@ router.delete('/adm/delete/:id', (req, res) => {
     }
 });
 
-
-app.use("/rage", router);
-app.listen(8005);
+server.listen(8005);
 console.log("RAGE API started on port 8005");
 
-module.exports = app;
+module.exports = server;
