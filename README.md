@@ -15,8 +15,8 @@ of 5 minutes between each vote.
 
 ### Services
 
-[API](api.html) : generated with raml2html
-[RAML](api.raml)
+[API](doc/api.html) : generated with raml2html
+[RAML](doc/api.raml)
 
 ```
 npm install

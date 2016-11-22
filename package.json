@@ -20,6 +20,6 @@
   "scripts": {
     "start" : "node index.js",
     "test" : "mocha",
-    "gen-doc" : "raml2html api.raml > api.html"
+    "gen-doc" : "raml2html ./doc/api.raml > ./doc/api.html"
   }
 }
