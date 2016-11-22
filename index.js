@@ -235,6 +235,10 @@ server.del('/adm/delete/:id', (req, res) => {
     }
 });
 
+server.get(/\/?.*/, restify.serveStatic({
+    directory: __dirname + '/doc'
+}));
+
 server.listen(8005);
 console.log("RAGE API started on port 8005");
 
