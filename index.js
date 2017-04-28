@@ -1,9 +1,27 @@
-var restify = require("restify"),
+const restify = require("restify"),
     server = restify.createServer({
         name: 'rage-meter',
         version: '1.0.0'
     }),
-    crypto = require("crypto");
+    crypto = require("crypto"),
+    jwt = require('express-jwt'),
+    jwks = require('jwks-rsa'),
+    dotenv = require('dotenv');
+
+dotenv.load();
+
+const jwtCheck = jwt({
+  secret: jwks.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: "https://languor.eu.auth0.com/.well-known/jwks.json"
+  }),
+  audience: 'https://languor.fr/api/rage',
+  issuer: "https://languor.eu.auth0.com/",
+  algorithms: ['RS256']
+});
+
 
 server.use(restify.bodyParser());
 server.use(restify.CORS());
@@ -38,7 +56,7 @@ function findPersonIndex(personId) {
 }
 
 // MOCK
-var persons = [
+let persons = [
     {name: 'person1', id: 1},
     {name: 'person2', id: 2},
     {name: 'person3', id: 3},
@@ -69,7 +87,7 @@ persons.map((p) => {
     return p;
 });
 
-var rageMeter = [].concat(persons),
+let rageMeter = [].concat(persons),
     mapIps = {};
 
 /**********************************
@@ -153,12 +171,12 @@ server.use(auth);
  *
  **********************************/
 
-server.get(BASE_ROUTE, (req, res) => {
+server.get(BASE_ROUTE, jwtCheck,(req, res) => {
     res.header('Content-Type', 'application/json');
     res.json(rageMeter);
 });
 
-server.get(`${BASE_ROUTE}/:id`, (req, res) => {
+server.get(`${BASE_ROUTE}/:id`, jwtCheck,(req, res) => {
     let person = findPerson(parseInt(req.params.id));
 
     if (person) {
@@ -170,7 +188,7 @@ server.get(`${BASE_ROUTE}/:id`, (req, res) => {
 });
 
 
-server.post(`${BASE_ROUTE}/:id`, (req, res) => {
+server.post(`${BASE_ROUTE}/:id`, jwtCheck,(req, res) => {
     let reqId = parseInt(req.params.id);
     let person = findPerson(reqId);
 
@@ -200,7 +218,7 @@ server.post(`${BASE_ROUTE}/:id`, (req, res) => {
  *
  **********************************/
 
-server.post('/adm/add', (req, res) => {
+server.post('/adm/add', jwtCheck,(req, res) => {
     // add a person to table
     let name = req.params.name;
     if(name) {
@@ -212,7 +230,7 @@ server.post('/adm/add', (req, res) => {
     }
 });
 
-server.put('/adm/update/:id', (req, res) => {
+server.put('/adm/update/:id', jwtCheck,(req, res) => {
     // update a person
     let person = findPerson(req.params.id);
     if(person){
@@ -223,7 +241,7 @@ server.put('/adm/update/:id', (req, res) => {
     }
 });
 
-server.del('/adm/delete/:id', (req, res) => {
+server.del('/adm/delete/:id', jwtCheck,(req, res) => {
     // delete a person
     let personIndex = findPersonIndex(req.params.id);
     if(personIndex){

@@ -1,16 +1,37 @@
 const chai = require('chai'),
     chaiHttp = require('chai-http'),
     server = require('../index'),
-    should = chai.should();
+    should = chai.should(),
+    dotenv = require('dotenv');
 
+dotenv.load();
 chai.use(chaiHttp);
 
 describe('Persons', () => {
+
+  let token = {};
+
+  before((done) => {
+    chai.request('https://languor.eu.auth0.com/oauth/token')
+      .post('/')
+      .send({
+        "client_id": process.env.AUTH0_API_ID,
+        "client_secret": process.env.AUTH0_API_SECRET,
+        "audience": process.env.AUTH0_API_AUDIENCE,
+        "grant_type":"client_credentials"
+      })
+      .end(function(err, res) {
+        res.should.have.status(200);
+        token = res.body.access_token;
+        done();
+      });
+  });
 
   describe('/GET person', () => {
     it('it should GET all the persons', (done) => {
       chai.request(server)
           .get('/rage')
+          .set('Authorization',`Bearer ${token}`)
           .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('array');
@@ -25,6 +46,7 @@ describe('Persons', () => {
       const person = {name:"person1",id:1};
       chai.request(server)
           .get('/rage/1')
+          .set('Authorization',`Bearer ${token}`)
           .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('object');
@@ -40,6 +62,7 @@ describe('Persons', () => {
     it('should POST a vote for a person', (done) => {
       chai.request(server)
           .post('/rage/2')
+          .set('Authorization',`Bearer ${token}`)
           .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('object');
@@ -52,6 +75,7 @@ describe('Persons', () => {
     it('should not add a vote for a person before 5 min', (done) => {
       chai.request(server)
           .post('/rage/2')
+          .set('Authorization',`Bearer ${token}`)
           .end((err, res) => {
             res.should.have.status(401);
             res.body.should.be.a('object');
