@@ -1,8 +1,8 @@
 version: 2
 jobs:
-  build:
+  build-app:
     docker:
-      - image: node:6.11.3
+      - image: node:8.9.1
     environment:
       TZ: "/usr/share/zoneinfo/Europe/Paris"
     steps:
@@ -19,3 +19,31 @@ jobs:
       - run:
           name: test
           command: npm test
+  build-deploy-image:
+    docker:
+      - image: docker:17.06.2-ce
+    steps:
+      - checkout
+      - setup_remote_docker 
+      - run:
+          name: build-docker-image
+          command: docker build -t languor/rage-meter:$CIRCLE_BRANCH .
+      - run:
+          name: docker-tag
+          command: docker tag languor/rage-meter:$CIRCLE_BRANCH $PRIV_DOCKER_URL/languor/rage-meter:$CIRCLE_BRANCH
+      - run:
+          name: docker-login
+          command: docker login -u $PRIV_DOCKER_USER -p $PRIV_DOCKER_PASS $PRIV_DOCKER_URL
+      - run:
+          name: docker-deploy
+          command: docker push $PRIV_DOCKER_URL/languor/rage-meter:$CIRCLE_BRANCH
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build-app
+      - build-deploy-image:
+          context: org-global
+          requires:
+            - build-app
