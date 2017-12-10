@@ -6,7 +6,15 @@ const restify = require("restify"),
     crypto = require("crypto"),
     jwt = require('express-jwt'),
     jwks = require('jwks-rsa'),
-    dotenv = require('dotenv');
+    dotenv = require('dotenv'),
+    fs = require('fs'),
+  corsMiddleware = require('restify-cors-middleware');
+
+const cors = corsMiddleware({
+  origins: [
+    'http://localhost:4200'
+  ]
+});
 
 dotenv.load();
 
@@ -23,8 +31,9 @@ const jwtCheck = jwt({
 });
 
 
-server.use(restify.bodyParser());
-server.use(restify.CORS());
+server.use(restify.plugins.bodyParser());
+server.pre(cors.preflight);
+server.use(cors.actual);
 
 /**********************************
  *
@@ -253,9 +262,35 @@ server.del('/adm/delete/:id', jwtCheck,(req, res) => {
     }
 });
 
-server.get(/\/?.*/, restify.serveStatic({
-    directory: __dirname + '/doc'
-}));
+server.get('/doc/html', (req, res, next) => {
+  fs.readFile(__dirname + '/doc/api.html', (err, data) => {
+    if (err) {
+      next(err);
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/html');
+    res.writeHead(200);
+    res.end(data);
+    next();
+  });
+});
+
+server.get('/doc/raml', (req, res, next) => {
+    fs.readFile(`${__dirname}/doc/api.raml`, (err, data) => sendDataFile(err, data, res, next));
+});
+
+function sendDataFile(err, data, res, next){
+  if (err) {
+    next(err);
+    return;
+  }
+
+  res.setHeader('Content-Type', 'text/html');
+  res.writeHead(200);
+  res.end(data);
+  next();
+}
 
 server.listen(8005);
 console.log("RAGE API started on port 8005");
