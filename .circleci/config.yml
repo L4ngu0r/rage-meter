@@ -2,7 +2,7 @@ version: 2
 jobs:
   build-app:
     docker:
-      - image: node:8.9.1
+      - image: node:8.11.4
     environment:
       TZ: "/usr/share/zoneinfo/Europe/Paris"
     steps:
