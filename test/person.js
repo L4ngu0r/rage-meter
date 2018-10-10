@@ -8,19 +8,19 @@ dotenv.load();
 chai.use(chaiHttp);
 
 describe('Persons', () => {
-
   let token = {};
+  let persons = [];
 
   before((done) => {
     chai.request('https://languor.eu.auth0.com/oauth/token')
       .post('/')
       .send({
-        "client_id": process.env.AUTH0_API_ID,
-        "client_secret": process.env.AUTH0_API_SECRET,
-        "audience": process.env.AUTH0_API_AUDIENCE,
-        "grant_type":"client_credentials"
+        'client_id': process.env.AUTH0_API_ID,
+        'client_secret': process.env.AUTH0_API_SECRET,
+        'audience': process.env.AUTH0_API_AUDIENCE,
+        'grant_type': 'client_credentials',
       })
-      .end(function(err, res) {
+      .end((err, res) => {
         res.should.have.status(200);
         token = res.body.access_token;
         done();
@@ -31,8 +31,12 @@ describe('Persons', () => {
     it('it should GET all the persons', (done) => {
       chai.request(server)
           .get('/rage')
-          .set('Authorization',`Bearer ${token}`)
+          .set('Authorization', `Bearer ${token}`)
           .end((err, res) => {
+            if (err) {
+              throw err;
+            }
+            persons = res.body;
             res.should.have.status(200);
             res.body.should.be.a('array');
             res.body.length.should.be.eql(7);
@@ -43,11 +47,14 @@ describe('Persons', () => {
 
   describe('/GET/:id person', () => {
     it('it should GET a person by the given id', (done) => {
-      const person = {name:"person1",id:1};
+      const person = persons[0];
       chai.request(server)
-          .get('/rage/1')
-          .set('Authorization',`Bearer ${token}`)
+          .get(`/rage/${person.id}`)
+          .set('Authorization', `Bearer ${token}`)
           .end((err, res) => {
+            if (err) {
+              throw err;
+            }
             res.should.have.status(200);
             res.body.should.be.a('object');
             res.body.should.have.property('name');
@@ -61,9 +68,12 @@ describe('Persons', () => {
   describe('/POST/:id', () => {
     it('should POST a vote for a person', (done) => {
       chai.request(server)
-          .post('/rage/2')
-          .set('Authorization',`Bearer ${token}`)
+          .post(`/rage/${persons[1].id}`)
+          .set('Authorization', `Bearer ${token}`)
           .end((err, res) => {
+            if (err) {
+              throw err;
+            }
             res.should.have.status(200);
             res.body.should.be.a('object');
             res.body.should.have.property('Vote');
@@ -74,8 +84,8 @@ describe('Persons', () => {
 
     it('should not add a vote for a person before 5 min', (done) => {
       chai.request(server)
-          .post('/rage/2')
-          .set('Authorization',`Bearer ${token}`)
+          .post(`/rage/${persons[1].id}`)
+          .set('Authorization', `Bearer ${token}`)
           .end((err, res) => {
             res.should.have.status(401);
             res.body.should.be.a('object');
@@ -84,7 +94,6 @@ describe('Persons', () => {
             res.body.should.have.property('Time remaining');
             done();
           });
-    })
+    });
   });
-
 });

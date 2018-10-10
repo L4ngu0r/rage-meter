@@ -91,35 +91,3 @@ mediaType: application/json
                 {
                   "Error": "id 5 not matching anyone"
                 }
-  /adm:
-    /add:
-      post:
-        description: Add a person in the group
-        body:
-           application/x-www-form-urlencoded:
-             formParameters:
-               name:
-                 description: Person's name
-                 type: string
-                 required: true
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  {
-                    "Added" : "Person with name toto"
-                  }
-          400:
-            body:
-              application/json:
-                example: |
-                  {
-                    "Error" : "Please provide a name"
-                  }
-    /update/{id}:
-      put:
-        description: Update person's informations
-    /delete/{id}:
-      delete:
-        description: Delete a person from the group
