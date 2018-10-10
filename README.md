@@ -1,6 +1,6 @@
 # Rage Meter API
 
-[![CircleCI](https://circleci.com/gh/L4ngu0r/rage-meter/tree/master.svg?style=svg)](https://circleci.com/gh/L4ngu0r/rage-meter/tree/master)
+[![CircleCI](https://circleci.com/gh/L4ngu0r/rage-meter/tree/master.svg?style=svg)](https://circleci.com/gh/L4ngu0r/rage-meter/tree/master) [![Greenkeeper badge](https://badges.greenkeeper.io/L4ngu0r/rage-meter.svg)](https://greenkeeper.io/)
 
 ### Description
 
