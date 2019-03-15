@@ -4,7 +4,7 @@ const chai = require('chai'),
     should = chai.should(),
     dotenv = require('dotenv');
 
-dotenv.load();
+dotenv.config();
 chai.use(chaiHttp);
 
 describe('Persons', () => {
