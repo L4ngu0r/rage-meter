@@ -4,7 +4,7 @@
   "dependencies": {
     "body-parser": "~1.19.0",
     "dotenv": "^8.0.0",
-    "ecstatic": "^4.1.2",
+    "ecstatic": "^4.1.4",
     "express-jwt": "^6.0.0",
     "jwks-rsa": "^1.3.0",
     "restify": "^8.0.0",
