@@ -2,7 +2,7 @@
   "name": "rage-api",
   "version": "1.0.0",
   "dependencies": {
-    "body-parser": "~1.19.0",
+    "body-parser": "~1.19.2",
     "dotenv": "^8.0.0",
     "ecstatic": "^4.1.4",
     "express-jwt": "^6.0.0",
